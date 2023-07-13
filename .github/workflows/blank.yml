@@ -15,8 +15,8 @@ jobs:
 
       - name: Set up Git
         run: |
-          git config --global user.name "Tu Nombre"
-          git config --global user.email "tu@email.com"
+          git config --global user.name "Jordan Esteban Ramirez Mejia"
+          git config --global user.email "jordan.ramirezme@amigo.edu.co"
 
       - name: Create version tag
         run: |
