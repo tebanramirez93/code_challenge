@@ -1,0 +1,26 @@
+## Local ##
+.vscode
+.DS_Store
+auth
+.theia
+.idea
+*.log
+
+## Python ##
+__pycache__
+.ipynb*
+*.egg-info
+*/dist
+
+## Environment ##
+env
+docker-compose*
+
+## Docs ##
+docs
+
+## Test ##
+.coverage
+coverage.xml
+.pytest_cache
+.scannerwork
