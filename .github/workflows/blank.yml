@@ -1,0 +1,24 @@
+name: Versioning
+
+on:
+  push:
+    branches:
+      - developer
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Git
+        run: |
+          git config --global user.name "Tu Nombre"
+          git config --global user.email "tu@email.com"
+
+      - name: Create version tag
+        run: |
+          git tag -a v${{ github.run_number }} -m "Version ${{ github.run_number }}"
+          git push origin --tags
