@@ -67,3 +67,6 @@ def login(request_data: LoginRequest):
         }
     else:
         raise HTTPException(status_code=404, detail="User or passwor incorrect Please input correct Credentials")
+    
+############# API ########################################################################################################################
+
