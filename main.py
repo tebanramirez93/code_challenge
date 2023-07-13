@@ -14,6 +14,7 @@ from typing import Union, Any
 from fastapi.security import HTTPBearer
 from pydantic import BaseModel
 from google.cloud import bigquery 
+from utils.processing import * 
 
 # Creating instance for bigquery client
 
@@ -70,3 +71,9 @@ def login(request_data: LoginRequest):
     
 ############# API ########################################################################################################################
 
+@app.post("/api/V1/move-historical-data-full", tags=["Code Challenge # 1"])
+def move_historic_full():    
+    
+    convert_files_xlsx_to_csv()
+
+    return("Message: Historial processed correctly")
