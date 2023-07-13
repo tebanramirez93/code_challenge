@@ -71,9 +71,16 @@ def login(request_data: LoginRequest):
     
 ############# API ########################################################################################################################
 
-@app.post("/api/V1/move-historical-data-full", tags=["Code Challenge # 1"])
-def move_historic_full():    
+@app.post("/api/V1/move-between-databases", tags=["Code Challenge # 1"])
+def move_between_databases():    
     
-    convert_files_xlsx_to_csv()
+    tables_saved_json  = convert_files_xlsx_to_csv()
+    return tables_saved_json
+   
 
-    return("Message: Historial processed correctly")
+
+@app.post("/api/V1/create-historical-tables", tags=["Code Challenge # 1"])
+def create_historical_tables():    
+    
+    tables_created_json = ingest_files_into_bq()
+    return {"inserted tables": tables_created_json}
