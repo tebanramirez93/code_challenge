@@ -4,12 +4,16 @@ It´s code challenge API created to manage data from bigquery
 
 ## Virtual Environment Creation
 
-Create a virtual environment before of start to install dependencies
+Create a virtual environment before of start to install dependencies to this is necessary to install virtualenv
 
 
 ```bash
+Pip install virtualenv 
+
+virtualenv {environment_name}
+
 Open console in cmd then 
-cd env
+cd {environment_name}
 cd Scripts
 activate
 ```
