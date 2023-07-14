@@ -1,5 +1,5 @@
 id INT64,
 name STRING,
 datetime STRING,
-department_id FLOAT64,
-job_id FLOAT64
+department_id INT64,
+job_id INT64

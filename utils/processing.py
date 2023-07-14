@@ -290,6 +290,28 @@ def clean_duplicated_data():
     return tables_curated
 
 
+def summarize():
+    with open('queries/summarize_2021.sql','r') as f:
+        query = (f.read())
+
+        query_job = Client.query(query)
+        query_job.result()
 
 
+def higher_hiring_mean():
+    with open('queries/mean.sql','r') as f:
+        query = (f.read())
 
+        query_job = Client.query(query)
+        query_job.result()
+
+        for row in query_job:
+            mean = row.Median            
+
+    fd = open('queries/higher_hiring.sql','r')    
+
+    query_mean = fd.read()
+
+    query_mean = query_mean.format(mean=mean)
+    query_job = Client.query(query_mean)
+    query_job.result()

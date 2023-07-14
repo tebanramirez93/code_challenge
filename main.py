@@ -193,3 +193,14 @@ def resto_backup_full():
 def refine_tables():
     tables_curated  = clean_duplicated_data()
     return tables_curated
+
+@app.post("/api/V1/summarize-per-dept-job", tags=["Code Challenge # 2"],dependencies=[Depends(validate_token)])
+def summarize_per_dep_job():
+    summarize()
+    return "Tables of summarizing has been created correctly"
+
+
+@app.post("/api/V1/higher-hiring", tags=["Code Challenge # 2"],dependencies=[Depends(validate_token)])
+def higher_hiring_table():
+    higher_hiring_mean()
+    return "Tables of higher hiring has been created correctly"
