@@ -105,7 +105,7 @@ def insert_rows_up_to_onek():
     Client = bigquery.Client()
 
     bucket = storage_client.get_bucket(bucket_name)
-    blobs = bucket.list_blobs()
+    blobs = bucket.list_blobs(bucket_name)
 
     inserted_records = {}
 
@@ -144,5 +144,152 @@ def insert_rows_up_to_onek():
         print(f'Total records inserted for table {table}: {records}')
 
     return inserted_records
+
+
+def export_table_to_avro():
+
+    dataset_ref = Client.dataset('code_challenge')
+    tables = Client.list_tables(dataset_ref)
+
+    export_info = []
+
+    for table in tables:
+        table_id = table.table_id
+        destination_uri = f'gs://code-challenge-one/backup/{table_id}.avro'
+        table_ref = Client.dataset('code_challenge').table(table_id)
+
+        job_config = bigquery.job.ExtractJobConfig()
+        job_config.destination_format = bigquery.DestinationFormat.AVRO
+        job_config.compression = bigquery.Compression.SNAPPY
+        job_config.use_avro_logical_types = True
+
+        extract_job = Client.extract_table(table_ref, destination_uri, job_config=job_config)
+        extract_job.result()
+
+        export_info.append({
+            'table_id': table_id,
+            'destination_uri': destination_uri,
+            'format': 'AVRO'
+        })
+
+    files_exported = json.dumps(export_info, indent=4)
+    files_exported = json.loads(files_exported)
+    return files_exported
+
+
+def export_table_to_avro_on_demand(table_id):
+
+    export_info = []
+
+
+    destination_uri = f'gs://code-challenge-one/backup/{table_id}.avro'
+    table_ref = Client.dataset('code_challenge').table(table_id)
+
+    job_config = bigquery.job.ExtractJobConfig()
+    job_config.destination_format = bigquery.DestinationFormat.AVRO
+    job_config.compression = bigquery.Compression.SNAPPY
+    job_config.use_avro_logical_types = True
+
+    extract_job = Client.extract_table(table_ref, destination_uri, job_config=job_config)
+    extract_job.result()
+
+    export_info.append({
+        'table_id': table_id,
+        'destination_uri': destination_uri,
+        'format': 'AVRO'
+    })
+
+    files_exported = json.dumps(export_info, indent=4)
+    files_exported = json.loads(files_exported)
+    return files_exported
+
+
+def load_avro_file(table_id):
+
+    export_info = []
+
+    table_id = f'datatest-305123.code_challenge.{table_id}'
+
+    job_config = bigquery.LoadJobConfig(source_format=bigquery.SourceFormat.AVRO)
+    uri = "gs://code-challenge-one/backup/jobs.avro"
+
+    load_job = Client.load_table_from_uri(
+        uri, table_id, job_config=job_config
+    )  
+
+    export_info.append({
+        'source': uri,
+        'destionation_table': table_id,
+        'format_file': 'AVRO'
+    })
+
+    load_job.result()  
+
+    files_exported = json.dumps(export_info, indent=4)
+    files_exported = json.loads(files_exported)
+    return files_exported
+
+
+import json
+from google.cloud import bigquery, storage
+
+def load_avro_full():
+    bucket_name = 'code-challenge-one'
+    storage_client = storage.Client()
+    client = bigquery.Client()
+
+    bucket = storage_client.get_bucket(bucket_name)
+    blobs = bucket.list_blobs()
+
+    export_info = []
+
+    for blob in blobs:
+        if blob.name.endswith('.avro'):
+            file = blob.name
+            file = file.replace('.avro','').replace('backup/','')
+            
+            table_id = f'datatest-305123.code_challenge.{file}'
+            uri = f"gs://code-challenge-one/backup/{file}.avro"
+
+            job_config = bigquery.LoadJobConfig(source_format=bigquery.SourceFormat.AVRO)
+
+            load_job = client.load_table_from_uri(uri, table_id, job_config=job_config)
+            load_job.result()
+
+            export_info.append({
+                'source': uri,
+                'destination_table': table_id,
+                'format_file': 'AVRO'
+            })
+    files_exported = json.dumps(export_info, indent=4)
+    files_exported = json.loads(files_exported)
+    return files_exported
+
+
+def clean_duplicated_data():
+    client = bigquery.Client()
+
+    dataset_ref = client.dataset('code_challenge')
+    tables = client.list_tables(dataset_ref)
+
+    tables_refined = {}
+
+    for table in tables:
+
+        table_name = (table.table_id).replace('_refined','')
+
+        try:
+            format_query = f"CREATE OR REPLACE TABLE `datatest-305123.code_challenge.{table_name}_refined` AS SELECT DISTINCT * FROM `datatest-305123.code_challenge.{table_name}`"
+            query_job = client.query(format_query)
+            query_job.result()
+            tables_refined[table_name] = "Processed tables to refined."
+        except Exception as e:
+            tables_refined[table_name] = "Error creating table: " + str(e)
+
+    tables_curated = json.loads(json.dumps(tables_refined, indent=4))
+    return tables_curated
+
+
+
 
 

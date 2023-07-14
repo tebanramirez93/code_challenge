@@ -163,3 +163,33 @@ def insert_data(data: InsertJobs):
         return {"message": "Data inserted successfully", "num_records": num_records}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f'Error: {str(e)}')
+    
+
+@app.post("/api/V1/save-backup-avro", tags=["Code Challenge # 1"])
+def read_table_as_avro():
+    files_exported  = export_table_to_avro()
+    return files_exported
+
+   
+@app.post("/api/V1/save-backup-avro-per-table", tags=["Code Challenge # 1"])
+def read_table_as_avro(table_id):
+    files_exported  = export_table_to_avro_on_demand(table_id)
+    return files_exported
+
+
+@app.post("/api/V1/restore-backup-per-table", tags=["Code Challenge # 1"])
+def resto_backup_per_file(table_id):
+    files_exported  = load_avro_file(table_id)
+    return files_exported
+
+@app.post("/api/V1/restore-full-backup", tags=["Code Challenge # 1"])
+def resto_backup_full():
+    files_exported  = load_avro_full()
+    return files_exported
+
+
+
+@app.post("/api/V1/refine-tables", tags=["Code Challenge # 1"])
+def refine_tables():
+    tables_curated  = clean_duplicated_data()
+    return tables_curated
