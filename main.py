@@ -73,7 +73,7 @@ def login(request_data: LoginRequest):
     
 ############# API ########################################################################################################################
 
-@app.post("/api/V1/move-between-databases", tags=["Code Challenge # 1"])
+@app.post("/api/V1/move-between-databases", tags=["Code Challenge # 1"],dependencies=[Depends(validate_token)])
 def move_between_databases():    
     
     tables_saved_json  = convert_files_xlsx_to_csv()
@@ -81,14 +81,14 @@ def move_between_databases():
    
 
 
-@app.post("/api/V1/create-historical-tables", tags=["Code Challenge # 1"])
+@app.post("/api/V1/create-historical-tables", tags=["Code Challenge # 1"],dependencies=[Depends(validate_token)])
 def create_historical_tables():    
     
     tables_created_json = ingest_files_into_bq()
     return {"inserted tables": tables_created_json}
 
 
-@app.post("/api/V1/insert-rows-up-to-onek", tags=["Code Challenge # 1"])
+@app.post("/api/V1/insert-rows-up-to-onek", tags=["Code Challenge # 1"],dependencies=[Depends(validate_token)])
 def insert_until_1k():    
 
     inserted_records = insert_rows_up_to_onek()
@@ -96,7 +96,7 @@ def insert_until_1k():
 
 # Endpoint to insert data using Json from Swagger of API REST Request with limit of 1000 of rows
 
-@app.post("/api/V1/insert-data-new-hires", tags=["Code Challenge # 1"])
+@app.post("/api/V1/insert-data-new-hires", tags=["Code Challenge # 1"],dependencies=[Depends(validate_token)])
 def insert_data(data: InsertNewHired):
     try:
         data_dict = data.dict()
@@ -120,7 +120,7 @@ def insert_data(data: InsertNewHired):
 
 
 
-@app.post("/api/V1/insert-departments", tags=["Code Challenge # 1"])
+@app.post("/api/V1/insert-departments", tags=["Code Challenge # 1"],dependencies=[Depends(validate_token)])
 def insert_data(data: InsertDepartments):
     try:
         data_dict = data.dict()
@@ -143,7 +143,7 @@ def insert_data(data: InsertDepartments):
     
 
 
-@app.post("/api/V1/insert-jobs", tags=["Code Challenge # 1"])
+@app.post("/api/V1/insert-jobs", tags=["Code Challenge # 1"],dependencies=[Depends(validate_token)])
 def insert_data(data: InsertJobs):
     try:
         data_dict = data.dict()
@@ -165,31 +165,31 @@ def insert_data(data: InsertJobs):
         raise HTTPException(status_code=500, detail=f'Error: {str(e)}')
     
 
-@app.post("/api/V1/save-backup-avro", tags=["Code Challenge # 1"])
+@app.post("/api/V1/save-backup-avro", tags=["Code Challenge # 1"],dependencies=[Depends(validate_token)])
 def read_table_as_avro():
     files_exported  = export_table_to_avro()
     return files_exported
 
    
-@app.post("/api/V1/save-backup-avro-per-table", tags=["Code Challenge # 1"])
+@app.post("/api/V1/save-backup-avro-per-table", tags=["Code Challenge # 1"],dependencies=[Depends(validate_token)])
 def read_table_as_avro(table_id):
     files_exported  = export_table_to_avro_on_demand(table_id)
     return files_exported
 
 
-@app.post("/api/V1/restore-backup-per-table", tags=["Code Challenge # 1"])
+@app.post("/api/V1/restore-backup-per-table", tags=["Code Challenge # 1"],dependencies=[Depends(validate_token)])
 def resto_backup_per_file(table_id):
     files_exported  = load_avro_file(table_id)
     return files_exported
 
-@app.post("/api/V1/restore-full-backup", tags=["Code Challenge # 1"])
+@app.post("/api/V1/restore-full-backup", tags=["Code Challenge # 1"],dependencies=[Depends(validate_token)])
 def resto_backup_full():
     files_exported  = load_avro_full()
     return files_exported
 
 
 
-@app.post("/api/V1/refine-tables", tags=["Code Challenge # 1"])
+@app.post("/api/V1/refine-tables", tags=["Code Challenge # 1"],dependencies=[Depends(validate_token)])
 def refine_tables():
     tables_curated  = clean_duplicated_data()
     return tables_curated
