@@ -1,24 +1,26 @@
 import json
 import shutil
+import pandas as pd
+import pyarrow as pa
 import os
 import jwt
 import io
-import pandas as pd
-import pyarrow as pa
 import fastavro
 from fastapi import FastAPI
-from google.cloud import bigquery 
+from itertools import islice
+from utils.processing import *
+from utils.models import *
 from datetime import datetime, timedelta
 from fastapi import FastAPI, HTTPException, Response, Depends
+from security import validate_token
 from typing import Union, Any
 from fastapi.security import HTTPBearer
 from pydantic import BaseModel
 from google.cloud import bigquery 
-from utils.processing import * 
 
 # Creating instance for bigquery client
 
-client = bigquery.Client()
+client = bigquery.Client(project='datatest-305123')
 
 ########################### Security ##############################################################################################
 
@@ -84,3 +86,80 @@ def create_historical_tables():
     
     tables_created_json = ingest_files_into_bq()
     return {"inserted tables": tables_created_json}
+
+
+@app.post("/api/V1/insert-rows-up-to-onek", tags=["Code Challenge # 1"])
+def insert_until_1k():    
+
+    inserted_records = insert_rows_up_to_onek()
+    return {"inserted_records": inserted_records}
+
+# Endpoint to insert data using Json from Swagger of API REST Request with limit of 1000 of rows
+
+@app.post("/api/V1/insert-data-new-hires", tags=["Code Challenge # 1"])
+def insert_data(data: InsertNewHired):
+    try:
+        data_dict = data.dict()
+        table_ref = client.dataset('code_challenge').table('hired_employees')
+        table = client.get_table(table_ref)
+        
+       
+        limited_data = list(islice([data_dict], 1000))
+        
+        num_records = len(limited_data)  
+        
+        errors = client.insert_rows_json(table, limited_data)
+
+        if errors:
+            raise HTTPException(status_code=500, detail=f'Error while inserting data: {errors}')
+
+        return {"message": "Data inserted successfully", "num_records": num_records}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f'Error: {str(e)}')
+
+
+
+
+@app.post("/api/V1/insert-departments", tags=["Code Challenge # 1"])
+def insert_data(data: InsertDepartments):
+    try:
+        data_dict = data.dict()
+        table_ref = client.dataset('code_challenge').table('departments')
+        table = client.get_table(table_ref)
+        
+       
+        limited_data = list(islice([data_dict], 1000))
+        
+        num_records = len(limited_data)  
+        
+        errors = client.insert_rows_json(table, limited_data)
+
+        if errors:
+            raise HTTPException(status_code=500, detail=f'Error while inserting data: {errors}')
+
+        return {"message": "Data inserted successfully", "num_records": num_records}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f'Error: {str(e)}')
+    
+
+
+@app.post("/api/V1/insert-jobs", tags=["Code Challenge # 1"])
+def insert_data(data: InsertJobs):
+    try:
+        data_dict = data.dict()
+        table_ref = client.dataset('code_challenge').table('jobs')
+        table = client.get_table(table_ref)
+        
+       
+        limited_data = list(islice([data_dict], 1000))
+        
+        num_records = len(limited_data)  
+        
+        errors = client.insert_rows_json(table, limited_data)
+
+        if errors:
+            raise HTTPException(status_code=500, detail=f'Error while inserting data: {errors}')
+
+        return {"message": "Data inserted successfully", "num_records": num_records}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f'Error: {str(e)}')

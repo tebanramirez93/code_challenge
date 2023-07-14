@@ -4,6 +4,8 @@ import csv
 import fastavro
 import json
 from google.cloud import bigquery, storage 
+from itertools import islice
+
 
 # Opening Client bigquery & Storage instances
 storage_client = storage.Client(project='datatest-305123')
@@ -14,6 +16,26 @@ Client = bigquery.Client(project='datatest-305123')
 ## Historic location
 folder_path = 'historic'
 file_list = os.listdir(folder_path)
+
+# bigquery functions schema 
+
+schemas = {
+    'hired_employees': [
+        bigquery.SchemaField(name="id", field_type="INTEGER"),
+        bigquery.SchemaField(name="name", field_type="STRING"),
+        bigquery.SchemaField(name="datetime", field_type="STRING"),
+        bigquery.SchemaField(name="department_id", field_type="INTEGER"),
+        bigquery.SchemaField(name="job_id", field_type="INTEGER"),
+    ],
+    'departments': [
+        bigquery.SchemaField(name="id", field_type="INTEGER"),
+        bigquery.SchemaField(name="department", field_type="STRING"),
+    ],
+    'jobs': [
+        bigquery.SchemaField(name="id", field_type="INTEGER"),
+        bigquery.SchemaField(name="job", field_type="STRING"),
+    ],
+}
 
 
 def convert_files_xlsx_to_csv():
@@ -74,3 +96,53 @@ def ingest_files_into_bq():
     tables_created_json = json.dumps(tables_created)
     tables_created_json = json.loads(tables_created_json)
     return tables_created_json
+
+
+
+def insert_rows_up_to_onek():
+    bucket_name = 'transport-bucket-challenge'
+    storage_client = storage.Client()
+    Client = bigquery.Client()
+
+    bucket = storage_client.get_bucket(bucket_name)
+    blobs = bucket.list_blobs()
+
+    inserted_records = {}
+
+    for blob in blobs:
+        if blob.name.endswith('.csv'):
+            filename_path = blob.name
+
+            file_name = filename_path.replace('.csv','')
+
+            schema = schemas.get(file_name)
+            dataset_ref = Client.dataset('code_challenge')
+            table_ref = dataset_ref.table(file_name)
+
+            if schema is None:
+                print(f"No schema found for table: {file_name}")
+                continue
+
+            blob = bucket.blob(filename_path)
+            csv_data = blob.download_as_text()
+            data = list(islice(csv.reader(csv_data.splitlines(), delimiter=','), 1000))
+
+            errors = Client.insert_rows(table_ref, data, selected_fields=schema)
+
+            if not errors:
+                print(f'Data inserted into table: {dataset_ref}.{table_ref}')
+                records_inserted = len(data)
+                print(f'Records inserted for table {file_name}: {records_inserted}')
+                if file_name in inserted_records:
+                    inserted_records[file_name] += records_inserted
+                else:
+                    inserted_records[file_name] = records_inserted
+            else:
+                print(f'Encountered errors while inserting data: {errors}')
+
+    for table, records in inserted_records.items():
+        print(f'Total records inserted for table {table}: {records}')
+
+    return inserted_records
+
+
